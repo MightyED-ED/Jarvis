@@ -16,10 +16,22 @@ def check_disk_space() -> float:
     total, used, free = shutil.disk_usage("/")
     return round(free / (1024 * 1024 * 1024), 2)
 
+# --- openes applications
+def open_app(app_name: str) -> str:
+    import subprocess
+    try:
+        subprocess.Popen(app_name)
+        return f"Opened {app_name}"
+    except FileNotFoundError:
+        return f"Could not find an application called {app_name}"
+
 # ---- TOOL REGISTRY: maps a tool's name -> the real function to run ----
 available_tools = {
     "check_disk_space": check_disk_space,
+    "open_app": open_app
 }
+
+
 
 # ---- TOOL SCHEMAS: what the model actually reads to decide when to use a tool ----
 tools = [
@@ -32,6 +44,23 @@ tools = [
                 "type": "object",
                 "properties": {},
                 "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "open_app",
+            "description": "Open an application by its name.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "app_name": {
+                        "type": "string",
+                        "description": "The name of the application to open."
+                    }
+                },
+                "required": ["app_name"]
             }
         }
     }
@@ -62,8 +91,9 @@ while True:
         # Loop through EVERY tool the model wants to call, not just one
         for call in message['tool_calls']:
             tool_name = call['function']['name']
+            tool_args = call['function']['arguments']
             function_to_run = available_tools[tool_name]   # look it up dynamically
-            result = function_to_run()
+            result = function_to_run(**tool_args)  # call it with the arguments the model provided  
 
             conversation.append({"role": "tool", "content": str(result)})
 
