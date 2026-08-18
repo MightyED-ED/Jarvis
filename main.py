@@ -36,7 +36,8 @@ while True:
         messages=conversation,
         tools=[check_disk_space])
 
-    message = response["tool_calls"]
+    message = response["message"]
+
     if message.get('tool_calls'):
         result = check_disk_space()
         conversation.append(message)
