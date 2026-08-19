@@ -25,10 +25,21 @@ def open_app(app_name: str) -> str:
     except FileNotFoundError:
         return f"Could not find an application called {app_name}"
 
+
+def list_files(folder_path:str) -> list:
+    import os
+    try:
+        return os.listdir(folder_path)
+    except FileNotFoundError:
+            return f"Could not find the folder at {folder_path}"
+
+
+
 # ---- TOOL REGISTRY: maps a tool's name -> the real function to run ----
 available_tools = {
     "check_disk_space": check_disk_space,
-    "open_app": open_app
+    "open_app": open_app,
+    "list_files": list_files,
 }
 
 
@@ -61,6 +72,23 @@ tools = [
                     }
                 },
                 "required": ["app_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_files",
+            "description": "List all files in a specified folder.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "folder_path": {
+                        "type": "string",
+                        "description": "The path to the folder whose files you want to list."
+                    }
+                },
+                "required": ["folder_path"]
             }
         }
     }
